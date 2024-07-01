@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format='[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-API_KEY = "temp"
+API_KEY = "4a1b-9c8d-f3e2-wh1s-k3rs-t5y7"
 
 @app.route('/api/photos/random', methods=['GET'])
 def get_random_cat_photo():
@@ -27,7 +27,19 @@ def get_random_cat_photo():
 
 @app.route('/api/photos/upload', methods=['POST'])
 def upload_cat_photo():
-    # TODO
+    logging.debug('Request: POST /api/photos/upload')
+    if not validate_api_key(request.headers.get('API-Key'), API_KEY):
+        logging.error('Auth: API key validation failed')
+        return jsonify({'error': 'Unauthorized'}), 401
+    file = request.files.get('file')
+    if file and file.filename.endswith('.jpg'):
+        if upload_photo(file):
+            return jsonify({'success': True}), 200
+        else:
+            logging.error('Upload: File upload failed: Invalid file type')
+            return jsonify({'error': 'Invalid file type'}), 400
+    else:
+        return jsonify({'error': 'Invalid file type'}), 400
 
 @app.route('/api/photos/recent', methods=['GET'])
 def get_recent_cat_photos():
